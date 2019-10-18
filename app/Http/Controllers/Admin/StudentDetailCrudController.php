@@ -9,7 +9,6 @@ use Backpack\CRUD\app\Http\Controllers\CrudController;
 use App\Http\Requests\StudentRequest as StoreRequest;
 use App\Http\Requests\StudentRequest as UpdateRequest;
 use Backpack\CRUD\CrudPanel;
-use Doctrine\DBAL\Query\QueryException;
 
 /**
  * Class StudentCrudController
@@ -62,9 +61,8 @@ class StudentDetailCrudController extends CrudController
                 'label' => 'photo',
                 'name' => 'photo',
                 'type' => 'image',
-                'height' => '70px',
-                'width' => '70px',
-                'prefix' => 'storage/'
+                'height' => '40px',
+                'width' => '40px'
             ],
             [
                 'label' => 'Name',
@@ -117,6 +115,7 @@ class StudentDetailCrudController extends CrudController
             'upload' => true,
             'crop' => true,
             'aspect_ratio' => 1,
+            // 'prefix' => 'uploads/images/profile_pictures/'
         ]);
         $this->crud->addFields([
             [
@@ -164,11 +163,7 @@ class StudentDetailCrudController extends CrudController
     public function store(StoreRequest $request)
     {
         // your additional operations before save here
-        try {
-            $redirect_location = parent::storeCrud($request);
-        } catch (\Illuminate\Database\QueryException $e) {
-            abort(404, 'Sorry, you can not add more than one profile for a student.');
-        }
+        $redirect_location = parent::storeCrud($request);
         // your additional operations after save here
         // use $this->data['entry'] or $this->crud->entry
         return $redirect_location;

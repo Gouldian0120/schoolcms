@@ -2,7 +2,7 @@
 
 namespace Backpack\NewsCRUD\app\Http\Requests;
 
-class CategoryRequest extends \Backpack\CRUD\app\Http\Requests\CrudRequest
+class TagRequest extends \Backpack\CRUD\app\Http\Requests\CrudRequest
 {
     /**
      * Determine if the user is authorized to make this request.

@@ -28,14 +28,7 @@ class Subject extends Model
     | FUNCTIONS
     |--------------------------------------------------------------------------
     */
-    public static function getSubjectWithAdminAttribute(){
-        $subjects = Subject::all();
-        $subjectsWithAdmin = [];
-        foreach($subjects as $subject){
-            $subjectsWithAdmin[$subject->id] = $subject->title . ' | ' . $subject->schoolAdmin->name;
-        }
-        return $subjectsWithAdmin;
-    }
+
     /*
     |--------------------------------------------------------------------------
     | RELATIONS
@@ -54,8 +47,6 @@ class Subject extends Model
     public static function getAdminSubjects(){
         return Subject::where('admin_id',backpack_user()->id)->pluck('title','id')->toArray();
     }
-
-
     /*
     |--------------------------------------------------------------------------
     | ACCESORS

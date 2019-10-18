@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Backpack\CRUD\CrudTrait;
-use Spatie\Permission\Traits\HasPermissions;
-use Spatie\Permission\Models\Role as BaseRole;
-class Role extends Model
+use Illuminate\Database\Eloquent\Model;
+use Cviebrock\EloquentSluggable\Sluggable;
+use Cviebrock\EloquentSluggable\SluggableScopeHelpers;
+
+class Tag extends Model
 {
-    use CrudTrait, HasPermissions;
+    use CrudTrait;
+    use Sluggable, SluggableScopeHelpers;
 
     /*
     |--------------------------------------------------------------------------
@@ -16,23 +18,26 @@ class Role extends Model
     |--------------------------------------------------------------------------
     */
 
-    protected $table = 'roles';
-    // protected $primaryKey = 'id';
-    // public $timestamps = false;
+    protected $table = 'tags';
+    protected $primaryKey = 'id';
+    public $timestamps = true;
     // protected $guarded = ['id'];
-    protected $fillable = ['name', 'guard_name'];
+    protected $fillable = ['name','admin_id'];
     // protected $hidden = [];
     // protected $dates = [];
 
-    public static function boot()
+    /**
+     * Return the sluggable configuration array for this model.
+     *
+     * @return array
+     */
+    public function sluggable()
     {
-        parent::boot();
-
-        self::saved(function($model){
-//            dd(request()->permissions);
-            BaseRole::findById($model->id, 'web')->syncPermissions(request()->perms);
-        });
-
+        return [
+            'slug' => [
+                'source' => 'slug_or_name',
+            ],
+        ];
     }
 
     /*
@@ -46,10 +51,12 @@ class Role extends Model
     | RELATIONS
     |--------------------------------------------------------------------------
     */
-    function getPermsAttribute(){
-        $permissions = BaseRole::findById($this->id, 'web')->permissions()->get()->pluck('name')->toArray();
-        return $permissions;
+
+    public function articles()
+    {
+        return $this->belongsToMany('Backpack\NewsCRUD\app\Models\Article', 'article_tag');
     }
+
     /*
     |--------------------------------------------------------------------------
     | SCOPES
@@ -61,6 +68,16 @@ class Role extends Model
     | ACCESORS
     |--------------------------------------------------------------------------
     */
+
+    // The slug is created automatically from the "name" field if no slug exists.
+    public function getSlugOrNameAttribute()
+    {
+        if ($this->slug != '') {
+            return $this->slug;
+        }
+
+        return $this->name;
+    }
 
     /*
     |--------------------------------------------------------------------------

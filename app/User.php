@@ -4,7 +4,6 @@ namespace App;
 
 use App\Models\ClassRoom;
 use Backpack\CRUD\CrudTrait;
-use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Spatie\Permission\Traits\HasRoles;
@@ -95,7 +94,7 @@ class User extends Authenticatable
 
     //one admin has many articles
     public function articles(){
-        return $this->hasMany('App\Models\Article','admin_id');
+        return $this->hasMany('Backpack\NewsCRUD\app\Models\Article','admin_id');
     }
     //one admin has many classes
     public function classes(){
@@ -103,9 +102,6 @@ class User extends Authenticatable
     }
     public function subjects(){
         return $this->hasMany('App\Models\Subject','admin_id');
-    }
-    public function categories(){
-        return $this->hasMany('App\Models\Category','admin_id');
     }
 
     public static function myExamSessions(){
@@ -118,10 +114,17 @@ class User extends Authenticatable
 		return $result ;
 	}
 
-	public static function adminFeesTypes(){
-        $feeTypes = backpack_user()->adminFeeTypes->pluck('type','id');
-        return $feeTypes;
-    }
+	public static function myExams(){
+
+		$exams = backpack_user()->exams;
+
+		$result = [];
+		foreach($examSessions as $session){
+			$result[$session->id] = $session->title . ' ' .$session->year;
+		}
+		return $result ;
+	}
+
     public static function myFeeTypes(){
 
         $feeTypes = backpack_user()->adminFeeTypes;
@@ -143,8 +146,7 @@ class User extends Authenticatable
     //profile button
     public function profileButton(){
         if($this->studentDetail){
-            return '<a data-button-type="review" title="Profile" href="'. url(config('backpack.base.route_prefix').'/student/'. $this->id.'/profile') .'" class="btn btn-xs btn-default"><i class="fa fa-file-text-o"></i> Profile</a>';
-            //return '<a data-button-type="review" title="Profile" href="'. url(config('backpack.base.route_prefix').'/student/'. $this->id.'/profile/'.$this->studentDetail->id.'/edit') .'" class="btn btn-xs btn-default"><i class="fa fa-file-text-o"></i> Profile</a>';
+            return '<a data-button-type="review" title="Profile" href="'. url(config('backpack.base.route_prefix').'/student/'. $this->id.'/profile/'.$this->studentDetail->id.'/edit') .'" class="btn btn-xs btn-default"><i class="fa fa-file-text-o"></i> Profile</a>';
         }else{
             return '<a data-button-type="review" title="Profile" href="'. url(config('backpack.base.route_prefix').'/student/'. $this->id.'/profile/create') .' " class="btn btn-xs btn-default"><i class="fa fa-file-text-o"></i> Profile</a>';
         //'. url(config('backpack.base.route_prefix').'/student/'. $this->id.'/profile/2') .'
@@ -171,25 +173,6 @@ class User extends Authenticatable
             Models\FeeType::create([
                 'type' => $row,
 
-                'admin_id' => $this->id
-            ]);
-        }
-        $subjects = ['Math', 'Physics', 'Chemistry','Science','Urdu','English','Pak Studies','Drawing'];
-        foreach ($subjects as $row){
-
-            Models\Subject::create([
-                'title' => $row,
-
-                'admin_id' => $this->id
-            ]);
-        }
-        $now = Carbon::now();
-        $exam_sessions = ['Spring', 'Fall'];
-        foreach ($exam_sessions as $row){
-
-            Models\ExamSession::create([
-                'title' => $row,
-                'year' => $now->year,
                 'admin_id' => $this->id
             ]);
         }

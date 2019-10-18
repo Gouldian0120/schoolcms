@@ -14,7 +14,7 @@ use Backpack\CRUD\CrudPanel;
  * @package App\Http\Controllers\Admin
  * @property-read CrudPanel $crud
  */
-class UserCrudController extends CrudController
+class UserCrudController extends CrudControllerd
 {
     public function setup()
     {
@@ -23,7 +23,7 @@ class UserCrudController extends CrudController
         | CrudPanel Basic Information
         |--------------------------------------------------------------------------
         */
-        $this->crud->setModel('App\User');
+        $this->crud->setModel('App\Models\User');
         $this->crud->setRoute(config('backpack.base.route_prefix') . '/user');
         $this->crud->setEntityNameStrings('user', 'users');
 

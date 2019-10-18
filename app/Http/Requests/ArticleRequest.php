@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace Backpack\NewsCRUD\app\Http\Requests;
 
 class ArticleRequest extends \Backpack\CRUD\app\Http\Requests\CrudRequest
 {
@@ -24,8 +24,10 @@ class ArticleRequest extends \Backpack\CRUD\app\Http\Requests\CrudRequest
     {
         return [
             'title' => 'required|min:2|max:255',
+            'slug' => 'unique:articles,slug,'.\Request::get('id'),
             'content' => 'required|min:2',
             'date' => 'required|date',
+            'status' => 'required',
             'category_id' => 'required',
         ];
     }
