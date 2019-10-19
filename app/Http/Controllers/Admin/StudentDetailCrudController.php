@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\User;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
+use App\Models;
 
 // VALIDATION: change the requests to match your own file names if you need form validation
 use App\Http\Requests\StudentRequest as StoreRequest;
 use App\Http\Requests\StudentRequest as UpdateRequest;
 use Backpack\CRUD\CrudPanel;
+use Doctrine\DBAL\Query\QueryException;
+use Illuminate\Support\Facades\App;
 
 /**
  * Class StudentCrudController
@@ -26,11 +29,8 @@ class StudentDetailCrudController extends CrudController
         // set a different route for the admin panel buttons
         $this->crud->setRoute(config('backpack.base.route_prefix')."/student/".$student_id.'/profile');
 
-
-        // show only that admin users
-
-
-
+            $user = User::find($student_id);
+            $schoolAdminClasses = $user->getStudentDetailAdminAttribute();
         /*
         |--------------------------------------------------------------------------
         | CrudPanel Basic Information
@@ -61,8 +61,9 @@ class StudentDetailCrudController extends CrudController
                 'label' => 'photo',
                 'name' => 'photo',
                 'type' => 'image',
-                'height' => '40px',
-                'width' => '40px'
+                'height' => '70px',
+                'width' => '70px',
+                'prefix' => 'storage/'
             ],
             [
                 'label' => 'Name',
@@ -108,28 +109,35 @@ class StudentDetailCrudController extends CrudController
             ]
 
         ]);
-        $this->crud->addField([
-            'label' => "Profile Image",
-            'name' => "photo",
-            'type' => 'image',
-            'upload' => true,
-            'crop' => true,
-            'aspect_ratio' => 1,
-            // 'prefix' => 'uploads/images/profile_pictures/'
-        ]);
+
+        if (backpack_user()->hasRole('school_admin')) {
+            $this->crud->addFields([
+                [
+                    'label' => 'Class',
+                    'name' => 'class_id',
+                    'type' => 'select2_from_array',
+                    'options' => backpack_user()->myClasses(),
+                    'attribute' => 'title'
+                ],
+            ]);
+        } else {
+            $this->crud->addFields([
+                [
+                    'label' => 'Class',
+                    'name' => 'class_id',
+                    'type' => 'select2_from_array',
+                    'options' => $schoolAdminClasses,
+                    'attribute' => 'title'
+                ],
+            ]);
+        }
+
         $this->crud->addFields([
             [
                 'label' => 'Student ID',
                 'name' => "student_id",
                 'type' => 'hidden',
                 'default' => $student_id,
-            ],
-            [
-                'label' => 'Class',
-                'name' => 'class_id',
-                'type' => 'select2_from_array',
-                'options' => backpack_user()->myClasses(),
-                'attribute' => 'title'
             ],
             [
                 'label' => 'Father Name',
@@ -139,6 +147,14 @@ class StudentDetailCrudController extends CrudController
                 'label' => 'gender',
                 'name' => 'gender',
                 'type' => 'enum'
+            ],
+            [
+                'label' => "Profile Image",
+                'name' => "photo",
+                'type' => 'image',
+                'upload' => true,
+                'crop' => true,
+                'aspect_ratio' => 1,
             ],
             [
                 'label' => 'Date of Birth',
@@ -163,7 +179,11 @@ class StudentDetailCrudController extends CrudController
     public function store(StoreRequest $request)
     {
         // your additional operations before save here
-        $redirect_location = parent::storeCrud($request);
+        try {
+            $redirect_location = parent::storeCrud($request);
+        } catch (\Illuminate\Database\QueryException $e) {
+            abort(404, 'Sorry, you can not add more than one profile for a student.');
+        }
         // your additional operations after save here
         // use $this->data['entry'] or $this->crud->entry
         return $redirect_location;
